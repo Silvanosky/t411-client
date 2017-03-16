@@ -344,7 +344,7 @@ type TorrentDetails struct {
 	Terms         map[string]string `json:"terms"`
 }
 
-func (t *T411) TorrentsOfToday() ([]Torrents, error) {
+func (t *T411) TorrentsOfToday() ([]Torrent, error) {
 
 	usedAPI := "/torrents/top/today"
 	u, err := url.Parse(fmt.Sprintf("%s%s", t411BaseURL, usedAPI))
@@ -358,7 +358,7 @@ func (t *T411) TorrentsOfToday() ([]Torrents, error) {
 	}
 	defer resp.Body.Close()
 
-	torrents := make([]Torrents,0)
+	torrents := make([]Torrent,0)
 	err = t.decode(&torrents, resp, usedAPI, u.RawQuery)
 	if err != nil {
 		return nil, err

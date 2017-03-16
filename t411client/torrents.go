@@ -344,6 +344,28 @@ type TorrentDetails struct {
 	Terms         map[string]string `json:"terms"`
 }
 
+func (t *T411) TorrentsOfToday() ([]Torrent, error) {
+
+	usedAPI := "/torrents/top/today"
+	u, err := url.Parse(fmt.Sprintf("%s%s", t411BaseURL, usedAPI))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := t.do("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	torrents := []Torrent{}
+	err = t.decode(torrents, resp, usedAPI, u.RawQuery)
+	if err != nil {
+		return nil, err
+	}
+	return torrents, nil
+}
+
 // TorrentsDetails returns the details of a torrent from a torrent 'id'.
 func (t *T411) TorrentsDetails(id string) (*TorrentDetails, error) {
 	usedAPI := "/torrents/details/"

@@ -210,29 +210,25 @@ func addOwner(v url.Values, owner string) {
 
 // URL returns the url of the search request
 func makeURL(title string, season, episode int, language, quality string, offset, limit int) (string, *url.URL, error) {
-	v := make(url.Values)
-	addSeason(v, season)
-	addEpisode(v, episode)
-	addLanguage(v, language)
-	addQuality(v, quality)
-	addOffset(v, offset)
-	addLimit(v, limit)
-
-	return makeRequest(title, v)
+	return makeRequest(title, func(v url.Values) {
+		addSeason(v, season)
+		addEpisode(v, episode)
+		addLanguage(v, language)
+		addQuality(v, quality)
+		addOffset(v, offset)
+		addLimit(v, limit)
+	})
 }
 
-func makeRequest(title string, data url.Values) (string, *url.URL, error) {
+func makeRequest(title string, f func(v url.Values)) (string, *url.URL, error) {
 	usedAPI := "/torrents/search/"
 	u, err := url.Parse(fmt.Sprintf("%s%s%s", t411BaseURL, usedAPI, title))
 	if err != nil {
 		return usedAPI, nil, err
 	}
 	v := u.Query()
-	for key, val := range data {
-		for i := 0; i < len(val); i++  {
-			v.Add(key, val[i])
-		}
-	}
+	f(v)
+
 	u.RawQuery = v.Encode()
 	return usedAPI, u, nil
 }
@@ -287,11 +283,11 @@ func (t *T411) SearchAllTorrentByTerms(title string, season, episode int, langua
 }
 
 func (t *T411) SearchTorrentsByName(title string, offset, limit int) (*Torrents, error) {
-	v := make(url.Values)
-	addLimit(v, limit)
-	addOffset(v, offset)
+	usedAPI, u, err := makeRequest(title, func(v url.Values) {
+		addLimit(v, limit)
+		addOffset(v, offset)
+	})
 
-	usedAPI, u, err := makeRequest(title, v)
 	if err != nil {
 		return nil, err
 	}
@@ -310,12 +306,12 @@ func (t *T411) SearchTorrentsByName(title string, offset, limit int) (*Torrents,
 }
 
 func (t *T411) SearchTorrentsByOwner(title, owner string, offset, limit int) (*Torrents, error) {
-	v := make(url.Values)
-	addLimit(v, limit)
-	addOffset(v, offset)
-	addOwner(v, owner)
 
-	usedAPI, u, err := makeRequest(title, v)
+	usedAPI, u, err := makeRequest(title, func(v url.Values) {
+		addLimit(v, limit)
+		addOffset(v, offset)
+		addOwner(v, owner)
+	})
 	if err != nil {
 		return nil, err
 	}

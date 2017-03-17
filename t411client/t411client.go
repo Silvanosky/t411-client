@@ -229,12 +229,13 @@ func fixJSONResponse(bytes []byte) []byte {
 	str, _ = fixTorrentList(str, ":\\[[0-9]+,", ":[{},")
 	str, _ = fixTorrentList(str, ",[0-9]+\\]}", ",{}]}")
 	str, _ = fixTorrentList(str, ":\\[[0-9]+\\]}", ":[{}]}")
-	for {
+	for i := 0; i < 100; i++ {
 		str, ok := fixTorrentList(str, ",[0-9]+,", ",{},")
 		if !ok {
 			return []byte(str)
 		}
 	}
+	return []byte(str)
 }
 
 func decodeErr(resp *http.Response) ([]byte, error) {
@@ -265,7 +266,7 @@ func (t *T411) decode(data interface{}, resp *http.Response, usedAPI, query stri
 	if err != nil {
 		return err
 	}
-	if err = json.Unmarshal(fixJSONResponse(bytes), data); err != nil {
+	if err = json.Unmarshal(bytes, data); err != nil {
 		log.Printf("Error decoding using '%s' API for '%s' query :%v", usedAPI, query, err)
 		return err
 	}

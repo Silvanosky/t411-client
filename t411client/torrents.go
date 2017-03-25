@@ -3,6 +3,7 @@ package t411client
 import (
 	"errors"
 	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -30,7 +31,7 @@ var (
 
 // Torrent represents a torrent as return by the t411 API
 type Torrent struct {
-	ID             string `json:"id"`
+	ID             json.Number `json:"id"`
 	Name           string `json:"name"`
 	Category       string `json:"category"`
 	Rewritename    string `json:"rewritename"`
@@ -41,7 +42,7 @@ type Torrent struct {
 	Added          string `json:"added"`
 	Size           string `json:"size"`
 	TimesCompleted string `json:"times_completed"`
-	Owner          string `json:"owner"`
+	Owner          json.Number `json:"owner"`
 	Categoryname   string `json:"categoryname"`
 	Categoryimage  string `json:"categoryimage"`
 	Username       string `json:"username"`
@@ -344,9 +345,11 @@ type TorrentDetails struct {
 	Terms         map[string]string `json:"terms"`
 }
 
-func (t *T411) TorrentsOfToday() ([]Torrent, error) {
+type ListTorrent []Torrent
 
-	usedAPI := "/torrents/top/today"
+func (t *T411) TorrentsOfToday() (*ListTorrent, error) {
+
+	usedAPI := "/torrents/top/today/"
 	u, err := url.Parse(fmt.Sprintf("%s%s", t411BaseURL, usedAPI))
 	if err != nil {
 		return nil, err
@@ -357,9 +360,8 @@ func (t *T411) TorrentsOfToday() ([]Torrent, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
-	torrents := make([]Torrent,0)
-	err = t.decode(&torrents, resp, usedAPI, u.RawQuery)
+	torrents := &ListTorrent{}
+	err = t.decode(torrents, resp, usedAPI, u.RawQuery)
 	if err != nil {
 		return nil, err
 	}
